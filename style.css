@@ -3,9 +3,9 @@
 * {
     padding: 0;
     margin: 0;
-    font-size: 16px;
+    font-size: 12px;
     font-family: 'Roboto', sans-serif;
-    color:rgba(0, 0, 0, 0.677);
+    color: rgba(0, 0, 0, 0.677);
 }
 
 body {
@@ -36,20 +36,23 @@ header p {
     width: 100%;
     background-color: white;
     list-style: none;
-    margin: 1em 0;
-    border-radius: 5px;
-    border: 1px solid rgba(136, 136, 136, 0.456);
-    box-shadow: 0 0 6px 1px rgba(136, 136, 136, 0.456); /* line shadow */
+    margin: 0.5em 0;
+    padding: 0.7em 0;
+    border: 0.3px solid rgba(0, 0, 0, 0.2);
+    /*box-shadow: 0 0 6px 1px rgba(136, 136, 136, 0.456); /* line shadow */
+    -webkit-box-shadow: 3px 3px 7px 0px rgba(0,0,0,0.26);
+    -moz-box-shadow: 3px 3px 7px 0px rgba(0,0,0,0.26);
+    box-shadow: 3px 3px 7px 0px rgba(0,0,0,0.26);
 }
 
 .field {
     list-style: none;
-    padding: 0.3em 0.7em;
     display: flex;
+    margin: 0 1.1em;
 }
 
 .entry .field {
-    border-bottom: 1px solid rgba(136, 136, 136, 0.456);
+    border-bottom: 0.3px solid rgba(0, 0, 0, 0.15);
 }
 
 .entry .field:last-child {
@@ -58,6 +61,7 @@ header p {
 
 .field p {
     display: inline-block;
+    margin: 0.2em 0.2em;
     white-space: pre-wrap;
     /* CSS3 */
     white-space: -moz-pre-wrap;
