@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@200&display=swap');
+
+* {
+    padding: 0;
+    margin: 0;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+    color:rgba(0, 0, 0, 0.677);
+}
+
+body {
+    display: block;
+}
+
+.container {
+    margin: 2vw;
+}
+
+.entry {
+    display: inline-block;
+    width: 100%;
+    background-color: white;
+    list-style: none;
+    margin-bottom: 2vw;
+    border-radius: 5px;
+    border: 1px solid rgba(136, 136, 136, 0.456);
+    box-shadow: 0 0 6px 1px rgba(136, 136, 136, 0.456); /* line shadow */
+}
+
+.field {
+    list-style: none;
+    padding: 0.3vw 0.7vw;
+    display: flex;
+}
+
+.entry .field {
+    border-bottom: 1px solid rgba(136, 136, 136, 0.456);
+}
+
+.entry .field:last-child {
+    border: none;
+}
+
+.field p {
+    display: inline-block;
+    white-space: pre-wrap;
+    /* CSS3 */
+    white-space: -moz-pre-wrap;
+    /* Firefox */
+    white-space: -pre-wrap;
+    /* Opera <7 */
+    white-space: -o-pre-wrap;
+    /* Opera 7 */
+    word-wrap: break-word;
+    /* IE */
+}
+
+.field .fieldname {
+    width: 15vw;
+    margin-right: 5vw;
+}
+
+.field .fieldvalue {
+    min-width: 0;
+    flex: 1;
+}
