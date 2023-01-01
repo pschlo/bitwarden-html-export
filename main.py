@@ -1,12 +1,9 @@
 import json
 from typing import Any
 from pathlib import Path, PurePath
-
-
-
+from datetime import datetime
 import dominate
 from dominate.tags import *
-
 
 
 class URIs(tuple):
@@ -33,12 +30,14 @@ class Entry(dict):
         self.del_fields()
 
         # parse custom fields
-        # ignore custom fields with key None, i.e. that have no key
         if 'fields' in self:
             for field in self['fields']:
                 key, value = field['name'], field['value']
-                if key is not None:
-                    self[key] = value if value is not None else ''
+                if key is None:
+                    key = ''
+                if value is None:
+                    value = ''
+                self[key] = value
             del self['fields']
     
     def del_fields(self) -> None:
@@ -122,13 +121,20 @@ class BitwardenData():
 
         return parsed_entries
 
+
+
+
     def create_html(self):
+        time_now:str = datetime.now().astimezone().strftime('%d %b %Y, %H:%M:%S UTC%z')
         doc = dominate.document(title='Bitwarden Export')
 
         with doc.head:  # type: ignore
             link(rel='stylesheet', href='style.css')
 
         with doc:
+            with header():
+                h1('Bitwarden Backup')
+                p(time_now)
             with ul(cls="container"):
                 for entry in self.entries:
                     # bitwarden entry
