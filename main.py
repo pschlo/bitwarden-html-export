@@ -8,15 +8,57 @@ import dominate
 from dominate.tags import *
 
 
+
+class URIs(tuple):
+    def __new__(cls, data:list[dict[Any,Any]]):
+        # ignore uris that are None
+        _data = tuple(uri['uri'] for uri in data if uri['uri'] is not None)
+        super().__new__(cls, _data)
+
+    def __str__(self) -> str:
+        return '\n'.join(self)
+
+
 class Entry(dict):
-    DEL_FIELDS = {'type', 'organizationId', 'folderId', 'reprompt', 'collectionIds', 'id', 'favorite'}
+    IGNORE_FIELDS = {'type', 'organizationId', 'folderId', 'reprompt', 'collectionIds', 'id', 'favorite'}
 
     def __init__(self, data:dict[Any,Any]) -> None:
         super().__init__(data)
-        # remove some fields
-        empty_fields = {f for f in self if self[f] is None}
-        for field in Entry.DEL_FIELDS | empty_fields:
-            del self[field]
+
+        # parse uris
+        if 'uris' in self:
+            self['uris'] = URIs(self['uris'])
+
+        # run here, because empty uri lists should be removed, but empty custom fields should still appear
+        self.del_fields()
+
+        # parse custom fields
+        # ignore custom fields with key None, i.e. that have no key
+        if 'fields' in self:
+            for field in self['fields']:
+                key, value = field['name'], field['value']
+                if key is not None:
+                    self[key] = value if value is not None else ''
+            del self['fields']
+    
+    def del_fields(self) -> None:
+        # get fields that map to something valid
+        nonempty_fields = set()
+        for key, val in self.items():
+            if val is None:
+                continue
+            try:
+                if len(val) == 0:
+                    continue
+            except TypeError:
+                pass
+            nonempty_fields.add(key)
+
+        all_fields = set(self.keys())
+        delete_fields = (all_fields - nonempty_fields) | Entry.IGNORE_FIELDS
+        for key in delete_fields:
+            del self[key]
+
     
 
 class Login(Entry):
@@ -96,15 +138,17 @@ class BitwardenData():
                                 value = str(value)
                                 # one field of an entry
                                 with li(cls="field"):
+                                    #print("FIELDNAME:", fieldname)
+                                    #print("entry:", entry['name'])
                                     p(fieldname, cls="fieldname")
                                     p(value, cls="fieldvalue")
         return str(doc)
 
 
 
-path = r'D:\bitwarden_export.json'
+path = r'bitwarden_export.json'
 data = BitwardenData(path)
-print([e for e in data.entries if isinstance(e,Login)])
+#print([e for e in data.entries if isinstance(e,Login)])
 
 html = data.create_html()
 
