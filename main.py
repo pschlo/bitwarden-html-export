@@ -26,13 +26,17 @@ class Entry(dict):
         if 'uris' in self:
             self['uris'] = URIs(self['uris'])
 
-        # run here, because empty uri lists should be removed, but empty custom fields should still appear
+        # run here, because empty uri lists and everything else that is empty/irrelevant should be removed,
+        # but empty custom fields should still appear
         self.del_fields()
 
         # parse custom fields
         if 'fields' in self:
             for field in self['fields']:
                 key, value = field['name'], field['value']
+                if key is None and value is None:
+                    # skip completely empty field
+                    continue
                 if key is None:
                     key = ''
                 if value is None:
