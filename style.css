@@ -29,7 +29,7 @@ header p {
 .entry {
     page-break-inside: avoid;
     background-color: white;
-    margin: 0.5em 0;
+    margin: 1em 0;
     padding: 0.7em 0;
     border: 0.3px solid rgba(0, 0, 0, 0.2);
     /*box-shadow: 0 0 6px 1px rgba(136, 136, 136, 0.456); /* line shadow */
