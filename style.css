@@ -64,13 +64,14 @@ header p {
     /* IE */
 }
 
+/* see https://developer.mozilla.org/en-US/docs/Web/CSS/flex */
 .field .fieldname {
-    flex-shrink: 0;
+    flex: none;
     width: 12em;
     margin-right: 3em;
 }
 
 .field .fieldvalue {
+    flex: auto;
     min-width: 0;
-    flex: 1;
 }
