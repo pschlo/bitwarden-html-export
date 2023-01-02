@@ -3,27 +3,22 @@
 * {
     padding: 0;
     margin: 0;
-    font-size: 12px;
-    font-family: 'Roboto', sans-serif;
-    color: rgba(0, 0, 0, 0.677);
+    list-style: none;
 }
 
 body {
-    display: block;
+    font-size: 12px;
+    font-family: 'Roboto', sans-serif;
+    color: rgba(0, 0, 0, 0.677);
+    margin: 1em 2vw
 }
 
 .container {
-    margin: 2em 2vw;
-}
-
-header {
-    display: block;
-    overflow: auto;
-    margin: 1em 2vw;
+    margin: 2em 0;
 }
 
 header h1 {
-    float: left;
+    display: inline;
     font-size: 30px;
 }
 
@@ -32,10 +27,7 @@ header p {
 }
 
 .entry {
-    display: inline-block;
-    width: 100%;
     background-color: white;
-    list-style: none;
     margin: 0.5em 0;
     padding: 0.7em 0;
     border: 0.3px solid rgba(0, 0, 0, 0.2);
@@ -46,7 +38,6 @@ header p {
 }
 
 .field {
-    list-style: none;
     display: flex;
     margin: 0 1.1em;
 }
@@ -60,7 +51,6 @@ header p {
 }
 
 .field p {
-    display: inline-block;
     margin: 0.2em 0.2em;
     white-space: pre-wrap;
     /* CSS3 */
@@ -75,6 +65,7 @@ header p {
 }
 
 .field .fieldname {
+    flex-shrink: 0;
     width: 12em;
     margin-right: 3em;
 }
