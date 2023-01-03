@@ -168,8 +168,8 @@ if __name__ == '__main__':
 
     temp_dir = Path(tempfile.gettempdir())
     html_path = temp_dir / json_path.with_suffix('.html').name
-    css_path = Path('style.css')
-    shutil.copy(css_path, temp_dir)
+    orig_css_path = Path('style.css')
+    temp_css_path = Path(shutil.copy(orig_css_path, temp_dir))
 
     data = BitwardenData(json_path)
     html = data.create_html()
@@ -221,5 +221,11 @@ if __name__ == '__main__':
     input("Press Enter to delete html export\n")
     delete_file(html_path)
     timer_thread.join()
+
+    # remove css file
+    try:
+        temp_css_path.unlink()
+    except FileNotFoundError:
+        pass
 
 
