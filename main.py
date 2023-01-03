@@ -3,7 +3,13 @@ from typing import Any
 from pathlib import Path, PurePath
 from datetime import datetime
 import dominate
-from dominate.tags import *
+import dominate.tags as dom
+import sys
+import webbrowser
+import tempfile
+import shutil
+from threading import Thread, Lock, Event
+import time
 
 
 class URIs(tuple):
@@ -125,42 +131,94 @@ class BitwardenData():
 
         return parsed_entries
 
-
-
-
     def create_html(self):
         time_now:str = datetime.now().astimezone().strftime('%d %b %Y, %H:%M:%S UTC%z')
         doc = dominate.document(title='Bitwarden Export')
 
         with doc.head:  # type: ignore
-            link(rel='stylesheet', href='style.css')
+            dom.link(rel='stylesheet', href='style.css')
 
         with doc:
-            with header():
-                h1('Bitwarden Backup')
-                p(time_now)
-            with ul(cls="container"):
+            with dom.header():
+                dom.h1('Bitwarden Backup')
+                dom.p(time_now)
+            with dom.ul(cls="container"):
                 for entry in self.entries:
                     # bitwarden entry
-                    with li(cls="entry"):
-                        with ul():
+                    with dom.li(cls="entry"):
+                        with dom.ul():
                             for fieldname, value in entry.items():
                                 value = str(value)
                                 # one field of an entry
-                                with li(cls="field"):
+                                with dom.li(cls="field"):
                                     #print("FIELDNAME:", fieldname)
                                     #print("entry:", entry['name'])
-                                    p(fieldname, cls="fieldname")
-                                    p(value, cls="fieldvalue")
+                                    dom.p(fieldname, cls="fieldname")
+                                    dom.p(value, cls="fieldvalue")
         return str(doc)
 
 
 
-path = r'bitwarden_export.json'
-data = BitwardenData(path)
-#print([e for e in data.entries if isinstance(e,Login)])
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        raise ValueError("Please provide json-encoded bitwarden export")
+    elif len(sys.argv) > 2:
+        raise ValueError("Too many arguments")
+    json_path = Path(sys.argv[1])
 
-html = data.create_html()
+    temp_dir = Path(tempfile.gettempdir())
+    html_path = temp_dir / json_path.with_suffix('.html').name
+    css_path = Path('style.css')
+    shutil.copy(css_path, temp_dir)
 
-with open('out.html', 'w') as f:
-    f.write(html)
+    data = BitwardenData(json_path)
+    html = data.create_html()
+
+    with open(html_path, 'w') as f:
+        f.write(html)
+    print("Successfully created html document")
+
+
+    # html file can be deleted either by key press or when the auto timer finishes
+    # both threads will try to delete file at most once
+
+    def delete_file(file:Path):
+        lock.acquire()
+        # check if other thread already deleted file
+        if flag_deleted.is_set():
+            lock.release()
+            return
+        # file should exist; attempt deletion
+        try:
+            file.unlink()
+            print("\nFile deleted")
+        except FileNotFoundError:
+            print("HTML file deleted from outside")
+        flag_deleted.set()
+        lock.release()
+
+    def autodelete(file:Path, delay_secs:int):
+        t0 = time.time()
+        while time.time() - t0 < delay_secs:
+            # return if other process deleted file
+            if flag_deleted.is_set():
+                return
+            time.sleep(0.1)
+        delete_file(file)
+        print("Press Enter to exit")
+    
+
+    webbrowser.open(str(html_path))
+
+    flag_deleted = Event()
+    lock = Lock()
+
+    timer_thread = Thread(target=autodelete, args=[html_path, 10])
+    timer_thread.start()
+    
+    # wait for key press
+    input("Press Enter to delete html export\n")
+    delete_file(html_path)
+    timer_thread.join()
+
+
