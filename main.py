@@ -193,7 +193,7 @@ if __name__ == '__main__':
             file.unlink()
             print("File deleted")
         except FileNotFoundError:
-            print("HTML file deleted from outside")
+            print("HTML file deleted from outside. Please check the recycle bin")
         flag_deleted.set()
         lock.release()
 
