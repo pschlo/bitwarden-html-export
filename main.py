@@ -191,7 +191,7 @@ if __name__ == '__main__':
         # file should exist; attempt deletion
         try:
             file.unlink()
-            print("\nFile deleted")
+            print("File deleted")
         except FileNotFoundError:
             print("HTML file deleted from outside")
         flag_deleted.set()
@@ -204,6 +204,7 @@ if __name__ == '__main__':
             if flag_deleted.is_set():
                 return
             time.sleep(0.1)
+        print()
         delete_file(file)
         print("Press Enter to exit")
     
