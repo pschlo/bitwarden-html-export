@@ -5,6 +5,7 @@ import json
 import os
 from enum import Enum, auto
 from typing import Any, Callable
+from login_credentials import *
 
 class VaultStatus(Enum):
     # vault is UNLOCKED iff the environment variable BW_SESSION has been set to a valid session key
@@ -18,11 +19,10 @@ class VaultStatus(Enum):
 class StateChangeError(Exception):
     pass
 
-class LoginMethod(Enum):
-    EMAIL = auto()
-    API = auto()
-    SSO = auto()
 
+
+def askpass():
+    pass
 
 def without_first_line(string:str):
     return '\n'.join(string.split('\n')[1:])
@@ -95,7 +95,7 @@ class BitwardenConn():
     ## VAULT STATE CHANGING METHODS
 
     # afterwards, vault state is UNLOCKED
-    def unlock(self) -> None:
+    def unlock(self, password:str|None=None) -> bool|None:
         status = self.status
 
         if status == VaultStatus.UNAUTHENTICATED:
@@ -107,6 +107,16 @@ class BitwardenConn():
 
         assert status == VaultStatus.LOCKED
 
+        if password is not None:
+            res = self._run_cmd('unlock', input=password)
+            if not (res.returncode == 0 and self.status == VaultStatus.UNLOCKED):
+                print(res.stderr)
+                return False
+            key = self.extract_session_key(res.stdout)
+            self.set_session_key(key)
+            return True
+
+        # no password provided
         while self.status != VaultStatus.UNLOCKED:
             password = maskpass.askpass("Password [input hidden]: ", mask='')
             res = self._run_cmd('unlock', input=password)
@@ -161,7 +171,7 @@ class BitwardenConn():
     # unlock vault
     # user is authenticated if necessary
     # afterwards, vault state is UNLOCKED 
-    def login_and_unlock(self, method:LoginMethod=LoginMethod.EMAIL):
+    def login_and_unlock(self, method:LoginMethod=LoginMethod.EMAIL, credentials:LoginCredentials|None=None):
         status = self.status
 
         if status == VaultStatus.UNLOCKED:
@@ -176,14 +186,18 @@ class BitwardenConn():
 
         assert status == VaultStatus.UNAUTHENTICATED
 
+        login_creds:LoginCredentials = METHOD_TO_CREDS[method].ask()
+
         print("Currently not authenticated, vaults are locked")
         print("Logging in")
-        self.login(method)
+        self.login(method, credentials=login_creds)
         print("Unlocking vault")
-        self.unlock()
+        # reuse email login password
+        password = login_creds.password if method is LoginMethod.EMAIL else None
+        self.unlock(password=password)
 
-    # afterwards, vault state is *not* UNAUTHENTICATED
-    def login(self, method:LoginMethod=LoginMethod.EMAIL):
+    # afterwards, vault state is LOCKED
+    def login(self, method:LoginMethod=LoginMethod.EMAIL, credentials:LoginCredentials|None=None):
         status = self.status
 
         if status != VaultStatus.UNAUTHENTICATED:
@@ -192,33 +206,35 @@ class BitwardenConn():
 
         assert status == VaultStatus.UNAUTHENTICATED
 
-        retval = self.LOGIN_CALLABLES[method]()
-        assert self.status != VaultStatus.UNAUTHENTICATED
+        retval = self.LOGIN_CALLABLES[method](creds=credentials)
+        assert self.status == VaultStatus.LOCKED
         print("Successfully authenticated")
         return retval
 
     # authenticate and unlock vault using email and password
-    def _login_email(self):
-        while self.status == VaultStatus.UNAUTHENTICATED:
-            print()
-            email = input("Email: ")
-            password = maskpass.askpass("Password [input hidden]: ", mask='')
-            two_step_method = input("2FA method (0: Authenicator, 1: Email, 3: YubiKey OTP): ")
-            two_step_key = input("2FA key: ")
-            print()
+    def _login_email(self, creds:EmailCredentials|None=None):
+        if creds:
+            res = self._run_cmd('login', creds.email, creds.password, '--method', creds.otp_method, '--code', creds.otp)
+            if not (res.returncode == 0 and self.status == VaultStatus.LOCKED):
+                print(res.stderr)
+                return False
+            return True
 
-            res = self._run_cmd('login', email, password, '--method', two_step_method, '--code', two_step_key)
+        # no credentials provided
+        while self.status != VaultStatus.LOCKED:
+            creds = EmailCredentials.ask()
+            res = self._run_cmd('login', creds.email, creds.password, '--method', creds.otp_method, '--code', creds.otp)
             if res.returncode > 0:
                 print(res.stderr)
             else:
                 # login successful
-                key = self.extract_session_key(res.stdout)
-                self.set_session_key(key)
+                # ignore session key so that vault is still locked
+                pass
 
-    def _login_api(self):
+    def _login_api(self, creds:APICredentials|None):
         raise NotImplementedError()
     
-    def _login_sso(self):
+    def _login_sso(self, creds:None):
         raise NotImplementedError()
         
 

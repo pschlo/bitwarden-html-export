@@ -10,6 +10,7 @@ import tempfile
 import shutil
 from threading import Thread, Lock, Event
 import time
+from bitwarden_conn import BitwardenConn
 
 
 class URIs(tuple):
