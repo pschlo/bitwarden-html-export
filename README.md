@@ -4,10 +4,10 @@ Open a plaintext Bitwarden JSON export as a readable local HTML document.
 
 ## Run
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), open a terminal in this directory, and run:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and run:
 
 ```console
-uv run bitwarden-html-export path/to/bitwarden_export.json
+uvx https://github.com/pschlo/bitwarden-html-export/archive/refs/heads/main.zip path/to/bitwarden_export.json
 ```
 
 The document opens in your browser and is deleted automatically after 10 seconds or when you press Enter. The original JSON file is not changed.
@@ -19,6 +19,8 @@ The JSON file and generated document contain plaintext passwords and other secre
 Tests use synthetic vault data only.
 
 ```console
+uv sync --locked
+uv run bitwarden-html-export path/to/bitwarden_export.json
 uv run pytest
 uv build
 ```
